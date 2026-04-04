@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParcelPal — VIT Bhopal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--orange:#FF6B2B;--orange2:#FF9A5C;--dark:#0D0D0D;--dark2:#161616;--dark3:#1F1F1F;--dark4:#2A2A2A;--text:#F5F0E8;--text2:#A0968A;--text3:#5A5248;--success:#2ECC71;--danger:#E74C3C;--warn:#F39C12;--info:#3498DB;--radius:16px;--radius-sm:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif}
+.screen{display:none;min-height:100vh}.screen.active{display:block}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100;background:rgba(13,13,13,0.9);backdrop-filter:blur(20px)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--orange)}.nav-logo span{color:var(--text)}
+.nav-btns{display:flex;gap:10px}
+.btn{padding:10px 22px;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--text)}.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-primary{background:var(--orange);color:white}.btn-primary:hover{background:var(--orange2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,107,43,0.35)}
+.btn-success{background:var(--success);color:white}.btn-success:hover{background:#27ae60}
+.btn-danger{background:var(--danger);color:white}
+.btn-lg{padding:14px 32px;font-size:16px;border-radius:14px}.btn-sm{padding:7px 16px;font-size:12px;border-radius:8px}
+#landing{background:var(--dark);position:relative;overflow:hidden}
+#landing::before{content:'';position:fixed;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,43,0.12) 0%,transparent 70%);pointer-events:none;animation:pulse 4s ease-in-out infinite alternate}
+#landing::after{content:'';position:fixed;bottom:-200px;left:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(255,107,43,0.06) 0%,transparent 70%);pointer-events:none}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes float{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.hero{padding:100px 40px 80px;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.hero-left{animation:fadeIn 0.6s ease both}
+.hero-right{animation:fadeIn 0.6s 0.15s ease both}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.25);color:var(--orange);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:28px;letter-spacing:0.3px}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:blink 1.5s infinite}
+.hero h1{font-size:62px;font-weight:800;line-height:1.0;letter-spacing:-2.5px;margin-bottom:22px}.hero h1 span{color:var(--orange);display:block}
+.hero p{font-size:16px;color:var(--text2);line-height:1.75;margin-bottom:36px;max-width:440px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:36px;margin-top:48px;padding-top:36px;border-top:1px solid rgba(255,255,255,0.07)}
+.stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--orange)}.stat-label{font-size:12px;color:var(--text3);margin-top:3px}
+.hero-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:22px;margin-bottom:12px;animation:float 3s ease-in-out infinite alternate;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.hero-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.hero-card-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+.parcel-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.04)}.parcel-row:last-child{border:none}
+.parcel-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--dark3);flex-shrink:0}
+.parcel-info{flex:1}.parcel-name{font-size:13px;font-weight:500}.parcel-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.parcel-amt{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--success)}
+.mini-card{background:var(--dark3);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px;animation:float 3s ease-in-out 1.5s infinite alternate}
+.features{padding:90px 40px;max-width:1200px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:60px}
+.section-tag{display:inline-block;font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:14px;background:rgba(255,107,43,0.1);padding:5px 14px;border-radius:20px}
+.section-header h2{font-size:42px;font-weight:800;letter-spacing:-1.5px}.section-header p{color:var(--text2);font-size:15px;margin-top:14px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:28px;transition:all 0.3s}
+.feature-card:hover{border-color:rgba(255,107,43,0.3);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+.feature-icon{width:50px;height:50px;border-radius:14px;background:rgba(255,107,43,0.1);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
+.feature-card h3{font-size:16px;font-weight:700;margin-bottom:8px}.feature-card p{font-size:13px;color:var(--text2);line-height:1.65}
+.how{padding:90px 40px;background:var(--dark2);border-top:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04)}.how-inner{max-width:1100px;margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:60px;position:relative}
+.steps::before{content:'';position:absolute;top:32px;left:14%;right:14%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,107,43,0.4),transparent)}
+.step{text-align:center;padding:0 20px}
+.step-num{width:64px;height:64px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin:0 auto 20px;position:relative;z-index:1;box-shadow:0 8px 24px rgba(255,107,43,0.35)}
+.step h3{font-size:15px;font-weight:700;margin-bottom:8px}.step p{font-size:13px;color:var(--text2);line-height:1.6}
+.cta-section{text-align:center;padding:90px 40px;position:relative}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,107,43,0.08) 0%,transparent 70%);pointer-events:none}
+footer{padding:28px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;color:var(--text3);font-size:13px}
+.status-pill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.status-active{background:rgba(46,204,113,0.15);color:var(--success)}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center}.modal-overlay.open{display:flex}
+.modal{background:var(--dark2);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:28px;width:100%;max-width:460px;animation:slideUp 0.3s ease;max-height:92vh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;margin-bottom:5px}.modal-sub{font-size:13px;color:var(--text2);margin-bottom:22px}
+.modal-tabs{display:flex;gap:4px;margin-bottom:22px;background:var(--dark3);border-radius:10px;padding:4px}
+.modal-tab{flex:1;padding:9px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all 0.2s;color:var(--text2);background:transparent}.modal-tab.active{background:var(--orange);color:white}
+.form-group{margin-bottom:15px}.form-label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:7px}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--dark3);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all 0.2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,107,43,0.12)}
+.form-textarea{resize:vertical;min-height:65px}.form-select option{background:var(--dark3)}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-hint{font-size:11px;color:var(--text3);margin-top:4px}
+#app{display:none}#app.active{display:flex;min-height:100vh}
+.app-sidebar{width:236px;flex-shrink:0;background:var(--dark2);border-right:1px solid rgba(255,255,255,0.06);padding:18px 13px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--orange);padding:6px 12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:13px}.sidebar-logo span{color:var(--text)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:10px 11px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:18px}
+.user-avatar{width:34px;height:34px;border-radius:9px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.user-name{font-size:13px;font-weight:500}.user-id{font-size:11px;color:var(--text3)}
+.sidebar-section{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:0 11px;margin:10px 0 5px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;transition:all 0.2s;margin-bottom:2px}
+.nav-item:hover{background:var(--dark3);color:var(--text)}.nav-item.active{background:rgba(255,107,43,0.12);color:var(--orange)}.nav-item-icon{font-size:15px;width:18px;text-align:center}
+.sidebar-bottom{padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);margin-top:auto}
+.app-main{flex:1;overflow-y:auto;background:var(--dark);display:flex;flex-direction:column}
+.app-topbar{padding:17px 26px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;background:rgba(13,13,13,0.9);backdrop-filter:blur(12px)}
+.topbar-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700}.topbar-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.app-content{padding:26px;flex:1}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.app-card{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:21px}
+.app-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.app-card-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px}
+.dash-stat{background:var(--dark2);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:17px;transition:all 0.2s}.dash-stat:hover{border-color:rgba(255,107,43,0.2)}
+.dash-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px}
+.dash-stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:3px}.dash-stat-sub{font-size:11px;color:var(--text3)}
+.request-card{background:var(--dark3);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;transition:all 0.2s}.request-card:hover{border-color:rgba(255,107,43,0.2)}
+.request-header{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.request-icon{width:38px;height:38px;border-radius:10px;background:rgba(255,107,43,0.1);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.request-title{font-size:13px;font-weight:600}.request-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.request-reward{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--orange);margin-left:auto;flex-shrink:0}
+.tag{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-orange{background:rgba(255,107,43,0.12);color:var(--orange)}.tag-green{background:rgba(46,204,113,0.12);color:var(--success)}.tag-blue{background:rgba(52,152,219,0.12);color:var(--info)}
+.request-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.04)}
+.request-user{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
+.mini-av{width:21px;height:21px;border-radius:6px;background:var(--dark4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--orange);font-family:'Syne',sans-serif}
+.lb-item{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--dark3);border-radius:var(--radius-sm);margin-bottom:8px;border:1px solid transparent;transition:all 0.2s}
+.lb-item:first-child{border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04)}.lb-item:hover{border-color:rgba(255,107,43,0.2)}
+.lb-rank{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;width:26px;text-align:center;color:var(--text3)}.lb-rank.gold{color:#FFD700}.lb-rank.silver{color:#C0C0C0}.lb-rank.bronze{color:#CD7F32}
+.lb-av{width:35px;height:35px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;flex-shrink:0}
+.lb-info{flex:1}.lb-name{font-size:13px;font-weight:600}.lb-meta{font-size:11px;color:var(--text3);margin-top:2px}.lb-earn{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--orange)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark2);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:10px;font-size:14px;z-index:9999;transform:translateX(120%);transition:transform 0.3s ease;min-width:250px;box-shadow:0 8px 32px rgba(0,0,0,0.4)}.toast.show{transform:translateX(0)}
+.divider{height:1px;background:rgba(255,255,255,0.06);margin:16px 0}
+.info-banner{background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:12px;color:var(--text3)}
+.spinner{width:28px;height:28px;border:3px solid var(--dark4);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite}
+.empty-state{text-align:center;padding:40px;color:var(--text3)}.empty-state-icon{font-size:40px;margin-bottom:12px}.empty-state p{font-size:14px;line-height:1.6}
+.error-msg{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.2);border-radius:8px;padding:10px 13px;font-size:13px;color:var(--danger);margin-bottom:12px}
+.accept-modal{background:var(--dark2);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:28px;width:100%;max-width:400px;animation:slideUp 0.3s ease}
+.forgot-link{font-size:13px;color:var(--orange);cursor:pointer;font-weight:500}
+.forgot-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div id="landing" class="screen active">
+  <nav class="nav">
+    <div class="nav-logo">Parcel<span>Pal</span></div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="openAuth('login')">Login</button>
+      <button class="btn btn-primary" onclick="openAuth('signup')">Join Free →</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-badge"><div class="hero-badge-dot"></div>Live on VIT Bhopal Campus</div>
+      <h1>Parcels & Food,<span>Delivered</span>by Your Peers</h1>
+      <p>Parcel gate pe atak gaya? Hostel mein bhukhle baithe ho? Fellow VITians se help lo — sirf apne normal route pe chalo aur ₹10–₹20 kamao.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary btn-lg" onclick="openAuth('signup')">Request Delivery →</button>
+        <button class="btn btn-ghost btn-lg" onclick="openAuth('signup')">Start Earning ₹</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="stat-num">VIT Only</div><div class="stat-label">Verified Students</div></div>
+        <div><div class="stat-num">₹10–₹20</div><div class="stat-label">Per Delivery</div></div>
+        <div><div class="stat-num">Free</div><div class="stat-label">To Join & Use</div></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-card">
+        <div class="hero-card-header"><span class="hero-card-title">Open Requests</span><span class="status-pill status-active">● Live</span></div>
+        <div class="parcel-row"><div class="parcel-icon">📦</div><div class="parcel-info"><div class="parcel-name">Amazon — Gate 2 → Boys B3</div><div class="parcel-meta">Posted 2 min ago</div></div><div class="parcel-amt">+₹10</div></div>
+        <div class="parcel-row"><div class="parcel-icon">📦</div><div class="parcel-info"><div class="parcel-name">Flipkart — Gate 1 → Girls B2</div><div class="parcel-meta">Posted 5 min ago</div></div><div class="parcel-amt">+₹15</div></div>
+        <div class="parcel-row"><div class="parcel-icon">📦</div><div class="parcel-info"><div class="parcel-name">Meesho — Gate 3 → Boys B6</div><div class="parcel-meta">Posted 8 min ago</div></div><div class="parcel-amt">+₹20</div></div>
+      </div>
+      <div class="mini-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:white;flex-shrink:0">SS</div>
+          <div><div style="font-size:13px;font-weight:600">Sagar ka parcel deliver ho gaya 🎉</div><div style="font-size:11px;color:var(--text3)">Boys B3 → earned ₹10 in 8 min</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="features">
+    <div class="section-header">
+      <div class="section-tag">Why ParcelPal</div>
+      <h2>Built for VIT Bhopal Life</h2>
+      <p>Gate pe parcel, hostel mein khana — sab kuch campus ke andar fellow VITians ke through.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">📦</div><h3>Parcel Pickup</h3><p>Amazon, Flipkart, Meesho gate pe atak gaya? Minutes mein hostel room tak pahunch jayega.</p></div>
+      <div class="feature-card"><div class="feature-icon">💰</div><h3>Earn While Walking</h3><p>Class ja rahe ho? Route pe request uthao. ₹10–₹20 kamao. Extra effort zero.</p></div>
+      <div class="feature-card"><div class="feature-icon">🔒</div><h3>Trusted & Safe</h3><p>Sirf verified VIT Bhopal emails. Rating after every delivery. Trusted community.</p></div>
+      <div class="feature-card"><div class="feature-icon">⚡</div><h3>Fast & Simple</h3><p>Request post karo, carrier accept kare, delivery ho — poora process 10 minutes mein.</p></div>
+      <div class="feature-card"><div class="feature-icon">🏆</div><h3>Leaderboard</h3><p>Top carriers ko recognition milti hai. Hostel ke best carrier bano.</p></div>
+      <div class="feature-card"><div class="feature-icon">🍱</div><h3>Food — Coming Soon</h3><p>Mayuri, Underbelly, Safal Mart — hostel room mein order, bina uthhe.</p></div>
+    </div>
+  </div>
+  <div class="how">
+    <div class="how-inner">
+      <div class="section-header"><div class="section-tag">How It Works</div><h2>3 Steps, Done</h2></div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><h3>Post Request</h3><p>Platform, size, pickup location, apna hostel — bas itna bhar do.</p></div>
+        <div class="step"><div class="step-num">2</div><h3>Carrier Accepts</h3><p>Route pe ja raha VITian request accept karta hai aur parcel uthata hai.</p></div>
+        <div class="step"><div class="step-num">3</div><h3>Pay After Delivery</h3><p>Delivery confirm karo, carrier ko cash/UPI se ₹10–₹20 do. Simple.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="cta-section">
+    <h2 style="font-size:46px;font-weight:800;letter-spacing:-1.5px;margin-bottom:14px">VIT Bhopal ka<br><span style="color:var(--orange)">Apna Delivery Network</span></h2>
+    <p style="color:var(--text2);font-size:16px;margin-bottom:32px;max-width:400px;margin-left:auto;margin-right:auto;line-height:1.7">Free join karo. 2 minutes mein start. Parcel bhi milega, paise bhi milenge.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary btn-lg" onclick="openAuth('signup')">Create Free Account →</button>
+      <button class="btn btn-ghost btn-lg" onclick="openAuth('login')">Already Joined? Login</button>
+    </div>
+  </div>
+  <footer>
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--orange);margin-bottom:10px">Parcel<span style="color:var(--text)">Pal</span></div>
+    <div style="margin-bottom:6px">Made with ❤️ for VIT Bhopal</div>
+    Boys B1–B8 · Girls B1, B2, Special Block · Day Scholars · © 2026
+  </footer>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <div class="modal-title" id="authTitle">Welcome Back</div>
+      <button onclick="closeAuth()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="modal-sub" id="authSub">Login to your ParcelPal account</div>
+    <div id="authError" class="error-msg" style="display:none"></div>
+    <div class="modal-tabs" id="authTabs">
+      <button class="modal-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</button>
+      <button class="modal-tab" id="signupTab" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">VIT Email</label><input class="form-input" type="email" placeholder="firstname.24bce00000@vitbhopal.ac.in" id="loginEmail"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="••••••••" id="loginPass"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px" id="loginBtn" onclick="doLogin()">Login →</button>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:13px;color:var(--text3)">Password bhool gaye? </span>
+        <span class="forgot-link" onclick="showForgotForm(true)">Reset karo →</span>
+      </div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupForm" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" placeholder="Rahul Kumar" id="signupName"></div>
+        <div class="form-group"><label class="form-label">Reg. Number</label><input class="form-input" placeholder="24BCE00000" id="signupReg"><div class="form-hint">Format: 24BCE00000</div></div>
+      </div>
+      <div class="form-group"><label class="form-label">VIT Email</label><input class="form-input" type="email" placeholder="firstname.24bce00000@vitbhopal.ac.in" id="signupEmail"><div class="form-hint">⚠️ Only @vitbhopal.ac.in emails accepted</div></div>
+      <div class="form-group"><label class="form-label">Hostel Block</label>
+        <select class="form-select" id="signupHostel">
+          <option value="">Select your hostel</option>
+          <optgroup label="Boys Hostels"><option>Boys B1</option><option>Boys B2</option><option>Boys B3</option><option>Boys B4</option><option>Boys B5</option><option>Boys B6</option><option>Boys B7</option><option>Boys B8</option><option>Large Dining Block</option><option>Amenities Block</option></optgroup>
+          <optgroup label="Girls Hostels"><option>Girls B1</option><option>Girls B2</option><option>Girls Special Block</option></optgroup>
+          <option>Day Scholar</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Password (min 6 chars)</label><input class="form-input" type="password" placeholder="Create password" id="signupPass"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px" id="signupBtn" onclick="doSignup()">Create Account →</button>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div id="forgotForm" style="display:none">
+      <div class="info-banner">📧 Apna VIT email daalo — password reset link bhej denge tumhare inbox mein.</div>
+      <div class="form-group"><label class="form-label">VIT Email</label><input class="form-input" type="email" placeholder="firstname.24bce00000@vitbhopal.ac.in" id="forgotEmail"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px" id="forgotBtn" onclick="doForgotPassword()">Reset Link Bhejo →</button>
+      <div style="text-align:center;margin-top:14px">
+        <span class="forgot-link" onclick="showForgotForm(false)">← Wapas Login pe</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCEPT MODAL -->
+<div class="modal-overlay" id="acceptModal">
+  <div class="accept-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">Accept this delivery?</div>
+      <button onclick="closeAcceptModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div id="acceptModalDetails" style="background:var(--dark3);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.8;color:var(--text2)"></div>
+    <div class="info-banner" style="margin-bottom:16px">💡 Parcel uthao, deliver karo, owner se <strong style="color:var(--orange)">₹<span id="acceptModalAmt">10</span> cash/UPI</strong> lo directly.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-ghost" onclick="closeAcceptModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirmAcceptBtn" onclick="doAcceptRequest()">Accept — Earn ₹<span id="acceptModalAmtBtn">10</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="screen">
+  <div class="app-sidebar">
+    <div class="sidebar-logo">Parcel<span>Pal</span></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div><div class="user-name" id="sidebarName">Loading...</div><div class="user-id" id="sidebarId">...</div></div>
+    </div>
+    <div>
+      <div class="sidebar-section">Main</div>
+      <div class="nav-item active" onclick="switchTab('dashboard',this)"><span class="nav-item-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="switchTab('request',this)"><span class="nav-item-icon">📦</span>Request Parcel</div>
+      <div class="nav-item" onclick="switchTab('canteen',this)"><span class="nav-item-icon">🍱</span>Order Food</div>
+      <div class="nav-item" onclick="switchTab('carry',this)"><span class="nav-item-icon">🏃</span>Carry & Earn</div>
+      <div class="nav-item" onclick="switchTab('track',this)"><span class="nav-item-icon">📍</span>Track Order</div>
+      <div class="sidebar-section">Account</div>
+      <div class="nav-item" onclick="switchTab('earnings',this)"><span class="nav-item-icon">💰</span>My Earnings</div>
+      <div class="nav-item" onclick="switchTab('leaderboard',this)"><span class="nav-item-icon">🏆</span>Leaderboard</div>
+      <div class="nav-item" onclick="switchTab('profile',this)"><span class="nav-item-icon">👤</span>Profile</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" onclick="doLogout()"><span class="nav-item-icon">🚪</span>Logout</div>
+    </div>
+  </div>
+  <div class="app-main">
+    <div class="app-topbar">
+      <div><div class="topbar-title" id="topbarTitle">Dashboard</div><div class="topbar-sub" id="topbarSub">Loading...</div></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="text-align:right"><div style="font-size:11px;color:var(--text3)">Total Earned</div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--orange)" id="topbarEarnings">₹0</div></div>
+        <div class="user-avatar" id="topbarAvatar">?</div>
+      </div>
+    </div>
+    <div class="app-content">
+
+      <!-- DASHBOARD -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="dash-stats">
+          <div class="dash-stat"><div class="dash-stat-label">Parcels Requested</div><div class="dash-stat-val" style="color:var(--info)" id="statParcels">0</div><div class="dash-stat-sub">Total requests</div></div>
+          <div class="dash-stat"><div class="dash-stat-label">Food Orders</div><div class="dash-stat-val" style="color:var(--warn)" id="statFood">0</div><div class="dash-stat-sub">This month</div></div>
+          <div class="dash-stat"><div class="dash-stat-label">Deliveries Made</div><div class="dash-stat-val" style="color:var(--success)" id="statDeliveries">0</div><div class="dash-stat-sub">As carrier</div></div>
+          <div class="dash-stat"><div class="dash-stat-label">Total Earned</div><div class="dash-stat-val" style="color:var(--orange)" id="statEarnings">₹0</div><div class="dash-stat-sub">All time</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div class="app-card">
+            <div class="app-card-header"><div class="app-card-title">Open Requests Near You</div><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="loadOpenRequests()">Refresh</button></div>
+            <div id="openRequestsList"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+          </div>
+          <div class="app-card">
+            <div class="app-card-header"><div class="app-card-title">My Active Orders</div><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="loadMyRequests()">Refresh</button></div>
+            <div id="myRequestsList"><div class="loading"><div class="spinner"></div></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+              <button class="btn btn-primary btn-sm" style="padding:10px" onclick="switchTab('request',document.querySelector('[onclick*=request]'))">+ Request Parcel</button>
+              <button class="btn btn-ghost btn-sm" style="padding:10px" onclick="switchTab('carry',document.querySelector('[onclick*=carry]'))">🏃 Carry & Earn</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REQUEST PARCEL -->
+      <div class="tab-panel" id="tab-request">
+        <div class="app-card" style="max-width:560px">
+          <div class="app-card-header"><div class="app-card-title">Request Parcel Delivery</div></div>
+          <div class="info-banner">📦 Request post karo. Carrier parcel uthayega aur tumhare room tak pahunchayega. Delivery ke baad carrier ko <strong style="color:var(--orange)">₹10–₹20 cash/UPI</strong> do directly.</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Platform</label>
+              <select class="form-select" id="reqPlatform"><option>Amazon</option><option>Flipkart</option><option>Meesho</option><option>Myntra</option><option>Nykaa</option><option>Ajio</option><option>Post Office</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Parcel Size</label>
+              <select class="form-select" id="reqSize" onchange="updateFee()">
+                <option value="10">Small — bag mein fit (₹10)</option>
+                <option value="15">Medium — haath mein (₹15)</option>
+                <option value="20">Large — dono haath (₹20)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Pickup Location</label>
+            <select class="form-select" id="reqPickup"><option>Gate 1 — Main Entrance</option><option>Gate 2 — Academic Block Side</option><option>Gate 3 — Hostel Side</option><option>Post Office Counter</option><option>Security Cabin A</option><option>Security Cabin B</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Deliver to My Hostel</label>
+            <select class="form-select" id="reqDrop">
+              <optgroup label="Boys Hostels"><option>Boys B1</option><option>Boys B2</option><option>Boys B3</option><option>Boys B4</option><option>Boys B5</option><option>Boys B6</option><option>Boys B7</option><option>Boys B8</option><option>Large Dining Block</option><option>Amenities Block</option></optgroup>
+              <optgroup label="Girls Hostels"><option>Girls B1</option><option>Girls B2</option><option>Girls Special Block</option></optgroup>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Room Number</label><input class="form-input" placeholder="e.g. Room 204, Floor 2" id="reqRoom"></div>
+          <div class="form-group"><label class="form-label">Notes for Carrier</label><textarea class="form-textarea" placeholder="e.g. Room pe knock karna. OTP delivery pe bataunga." id="reqNotes"></textarea></div>
+          <div style="background:var(--dark3);border-radius:12px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.06)">
+            <div><div style="font-size:14px;font-weight:500">Carrier Fee</div><div style="font-size:12px;color:var(--text3);margin-top:3px">Delivery ke baad directly carrier ko do</div></div>
+            <div style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var(--orange)" id="reqFeeDisplay">₹10</div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px" id="submitReqBtn" onclick="submitParcelRequest()">Post Request →</button>
+        </div>
+      </div>
+
+      <!-- CANTEEN -->
+      <div class="tab-panel" id="tab-canteen">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px">
+          <div style="font-size:80px;margin-bottom:24px;animation:float 3s ease-in-out infinite alternate">🍱</div>
+          <div style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;margin-bottom:12px">Coming Soon!</div>
+          <div style="font-size:16px;color:var(--text2);max-width:380px;line-height:1.7;margin-bottom:32px">
+            <strong style="color:var(--orange)">Mayuri</strong>, <strong style="color:var(--orange)">Underbelly</strong> aur <strong style="color:var(--orange)">Safal Mart</strong> se ordering jald aa rahi hai!<br><br>Hostel room se order karo, bina uthhe. 🛏️
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            <span class="tag tag-orange" style="padding:8px 16px;font-size:13px">🍱 Mayuri</span>
+            <span class="tag tag-orange" style="padding:8px 16px;font-size:13px">🍔 Underbelly</span>
+            <span class="tag tag-orange" style="padding:8px 16px;font-size:13px">🛒 Safal Mart</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARRY & EARN -->
+      <div class="tab-panel" id="tab-carry">
+        <div class="app-card" style="max-width:540px;margin-bottom:18px">
+          <div class="app-card-title" style="margin-bottom:5px">Carry & Earn</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Neeche open requests hain. Apne route pe wala accept karo aur kamao.</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Starting from</label>
+              <select class="form-select" id="routeFrom"><option>Gate 1</option><option>Gate 2</option><option>Gate 3</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Going to</label>
+              <select class="form-select" id="routeTo">
+                <optgroup label="Boys"><option>Boys B1</option><option>Boys B2</option><option>Boys B3</option><option>Boys B4</option><option>Boys B5</option><option>Boys B6</option><option>Boys B7</option><option>Boys B8</option></optgroup>
+                <optgroup label="Girls"><option>Girls B1</option><option>Girls B2</option><option>Girls Special</option></optgroup>
+                <option>Academic Block</option><option>Library</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="loadOpenRequests()">Find Requests on My Route →</button>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:13px">All Open Requests</div>
+        <div id="carryRequestsList"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+      </div>
+
+      <!-- TRACK -->
+      <div class="tab-panel" id="tab-track">
+        <div style="max-width:520px">
+          <div class="app-card">
+            <div class="app-card-title" style="margin-bottom:10px">Track Your Order</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Apne active orders Dashboard mein "My Active Orders" section mein dekho.</div>
+            <button class="btn btn-primary" style="width:100%" onclick="switchTab('dashboard',document.querySelector('[onclick*=dashboard]'))">Go to Dashboard →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EARNINGS -->
+      <div class="tab-panel" id="tab-earnings">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;max-width:620px;margin-bottom:22px">
+          <div class="dash-stat"><div class="dash-stat-label">Total Earned</div><div class="dash-stat-val" style="color:var(--orange)" id="earnTotal">₹0</div><div class="dash-stat-sub" id="earnDeliveries">0 deliveries</div></div>
+          <div class="dash-stat"><div class="dash-stat-label">This Month</div><div class="dash-stat-val" style="color:var(--success)" id="earnMonth">₹0</div><div class="dash-stat-sub">Current month</div></div>
+          <div class="dash-stat"><div class="dash-stat-label">My Rating</div><div class="dash-stat-val" style="color:#FFD700" id="earnRating">5.0★</div><div class="dash-stat-sub">Carrier rating</div></div>
+        </div>
+        <div class="app-card" style="max-width:620px">
+          <div class="app-card-header"><div class="app-card-title">Earnings History</div><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="loadEarnings()">Refresh</button></div>
+          <div id="earningsHistory"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD -->
+      <div class="tab-panel" id="tab-leaderboard">
+        <div style="max-width:560px">
+          <div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:4px">🏆 Top Carriers</div><div style="color:var(--text3);font-size:13px">VIT Bhopal · All Time</div></div>
+          <div class="app-card" id="leaderboardList"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="tab-panel" id="tab-profile">
+        <div class="app-card" style="max-width:460px">
+          <div style="text-align:center;margin-bottom:20px">
+            <div style="width:68px;height:68px;border-radius:18px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:white;margin:0 auto 10px" id="profileAv">?</div>
+            <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800" id="profileNameDisp">Loading...</div>
+            <div style="color:var(--text3);font-size:12px;margin-top:3px" id="profileMetaDisp">...</div>
+            <div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><span class="tag tag-green">✓ Verified VITian</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="profileNameIn"></div>
+          <div class="form-group"><label class="form-label">VIT Email</label><input class="form-input" id="profileEmailIn" readonly style="opacity:0.5"></div>
+          <div class="form-group"><label class="form-label">UPI ID (earnings receive karne ke liye)</label><input class="form-input" placeholder="yourname@upi" id="profileUPI"></div>
+          <div class="form-group"><label class="form-label">My Hostel</label>
+            <select class="form-select" id="profileHostel">
+              <optgroup label="Boys Hostels"><option>Boys B1</option><option>Boys B2</option><option>Boys B3</option><option>Boys B4</option><option>Boys B5</option><option>Boys B6</option><option>Boys B7</option><option>Boys B8</option><option>Large Dining</option><option>Amenities</option></optgroup>
+              <optgroup label="Girls Hostels"><option>Girls B1</option><option>Girls B2</option><option>Girls Special Block</option></optgroup>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:12px" onclick="saveProfile()">Save Changes</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg">Done!</span></div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://fkzsscgvtqwalvkorovb.supabase.co',
+  'sb_publishable_5Bj0FNPY-o6LByPV4AJWVw_odU_ayj6'
+);
+let currentUser = null, currentProfile = null, pendingAcceptId = null, pendingAcceptReward = 10;
+
+// ===== AUTH =====
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { showAuthError('Sabhi fields bharo'); return; }
+  setBtnLoading('loginBtn', true);
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setBtnLoading('loginBtn', false);
+  if (error) { showAuthError(error.message); return; }
+  closeAuth(); await enterApp(data.user);
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const reg = document.getElementById('signupReg').value.trim().toUpperCase();
+  const email = document.getElementById('signupEmail').value.trim();
+  const hostel = document.getElementById('signupHostel').value;
+  const pass = document.getElementById('signupPass').value;
+  if (!name||!reg||!email||!hostel||!pass) { showAuthError('Sabhi fields bharo'); return; }
+  if (!/^[a-zA-Z]+\.[0-9]{2}[a-zA-Z]{3}[0-9]{5}@vitbhopal\.ac\.in$/i.test(email)) { showAuthError('❌ Sirf VIT Bhopal email! Format: firstname.24bce00000@vitbhopal.ac.in'); return; }
+  if (!/^[0-9]{2}[a-zA-Z]{3}[0-9]{5}$/i.test(reg)) { showAuthError('❌ Invalid reg number! Format: 24BCE00000'); return; }
+  if (pass.length < 6) { showAuthError('Password kam se kam 6 characters'); return; }
+  setBtnLoading('signupBtn', true);
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  if (error) { setBtnLoading('signupBtn', false); showAuthError(error.message); return; }
+  if (data.user) {
+    await sb.from('users').insert({ id: data.user.id, name, reg_number: reg, email, hostel, total_earnings: 0, total_deliveries: 0, rating: 5.0 });
+  }
+  setBtnLoading('signupBtn', false);
+  closeAuth(); await enterApp(data.user);
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { showAuthError('Email daalo pehle'); return; }
+  setBtnLoading('forgotBtn', true);
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://parcel-pal-vit.vercel.app' });
+  setBtnLoading('forgotBtn', false);
+  if (error) { showAuthError(error.message); return; }
+  hideAuthError(); closeAuth();
+  showToast('📧', 'Reset link bhej diya! Email check karo.');
+}
+
+function showForgotForm(show) {
+  document.getElementById('loginForm').style.display = show ? 'none' : 'block';
+  document.getElementById('forgotForm').style.display = show ? 'block' : 'none';
+  document.getElementById('authTabs').style.display = show ? 'none' : 'flex';
+  document.getElementById('authTitle').textContent = show ? 'Password Reset' : 'Welcome Back';
+  document.getElementById('authSub').textContent = show ? 'Reset link milega tumhare email pe' : 'Login to your ParcelPal account';
+  hideAuthError();
+}
+
+async function doLogout() {
+  await sb.auth.signOut(); currentUser = null; currentProfile = null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('landing').classList.add('active');
+  showToast('👋', 'Logged out!');
+}
+
+async function enterApp(user) {
+  currentUser = user;
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  await loadProfile(); loadDashboard();
+  showToast('🎉', 'Welcome to ParcelPal!');
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('users').select('*').eq('id', currentUser.id).single();
+  if (!data) return; currentProfile = data;
+  const ini = data.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  ['sidebarAvatar','topbarAvatar','profileAv'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ini;});
+  document.getElementById('sidebarName').textContent = data.name;
+  document.getElementById('sidebarId').textContent = data.reg_number;
+  document.getElementById('topbarSub').textContent = 'Welcome, '+data.name.split(' ')[0]+'! 👋';
+  document.getElementById('topbarEarnings').textContent = '₹'+(data.total_earnings||0);
+  document.getElementById('profileNameDisp').textContent = data.name;
+  document.getElementById('profileMetaDisp').textContent = data.reg_number+' · '+data.hostel;
+  document.getElementById('profileNameIn').value = data.name;
+  document.getElementById('profileEmailIn').value = data.email;
+  document.getElementById('profileUPI').value = data.upi_id||'';
+  document.getElementById('profileHostel').value = data.hostel;
+}
+
+async function saveProfile() {
+  const name=document.getElementById('profileNameIn').value.trim();
+  const upi=document.getElementById('profileUPI').value.trim();
+  const hostel=document.getElementById('profileHostel').value;
+  const {error}=await sb.from('users').update({name,upi_id:upi,hostel}).eq('id',currentUser.id);
+  if(error){showToast('❌','Error saving');return;}
+  showToast('✅','Profile save ho gaya!'); await loadProfile();
+}
+
+async function loadDashboard() { loadOpenRequests(); loadMyRequests(); loadDashStats(); }
+
+async function loadDashStats() {
+  if(!currentUser)return;
+  const {data:parcels}=await sb.from('parcel_requests').select('id').eq('owner_id',currentUser.id);
+  const {data:canteen}=await sb.from('canteen_orders').select('id').eq('owner_id',currentUser.id);
+  const {data:deliveries}=await sb.from('parcel_requests').select('id').eq('carrier_id',currentUser.id).eq('status','delivered');
+  const {data:profile}=await sb.from('users').select('total_earnings').eq('id',currentUser.id).single();
+  document.getElementById('statParcels').textContent=parcels?.length||0;
+  document.getElementById('statFood').textContent=canteen?.length||0;
+  document.getElementById('statDeliveries').textContent=deliveries?.length||0;
+  const earn=profile?.total_earnings||0;
+  document.getElementById('statEarnings').textContent='₹'+earn;
+  document.getElementById('topbarEarnings').textContent='₹'+earn;
+  document.getElementById('earnTotal').textContent='₹'+earn;
+}
+
+async function loadOpenRequests() {
+  const el=document.getElementById('openRequestsList'),el2=document.getElementById('carryRequestsList');
+  if(el)el.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
+  if(el2)el2.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
+  const {data,error}=await sb.from('parcel_requests').select('*').eq('status','pending').order('created_at',{ascending:false}).limit(15);
+  if(error||!data||data.length===0){
+    const empty='<div class="empty-state"><div class="empty-state-icon">📭</div><p>Abhi koi open request nahi hai.<br>Thodi der baad check karo!</p></div>';
+    if(el)el.innerHTML=empty; if(el2)el2.innerHTML=empty; return;
+  }
+  const html=data.map(r=>requestCardHTML(r,true)).join('');
+  if(el)el.innerHTML=html; if(el2)el2.innerHTML=html;
+}
+
+async function loadMyRequests() {
+  const el=document.getElementById('myRequestsList');
+  if(!el||!currentUser)return;
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const {data}=await sb.from('parcel_requests').select('*').eq('owner_id',currentUser.id).in('status',['pending','accepted','picked_up']).order('created_at',{ascending:false});
+  if(!data||data.length===0){el.innerHTML='<div class="empty-state"><div class="empty-state-icon">📦</div><p>Koi active request nahi.<br>Upar se post karo!</p></div>';return;}
+  el.innerHTML=data.map(r=>requestCardHTML(r,false)).join('');
+}
+
+function requestCardHTML(r,showAccept) {
+  const statusMap={pending:['Waiting for carrier','var(--warn)'],accepted:['Carrier on way','var(--info)'],picked_up:['In Transit','var(--success)'],delivered:['Delivered','var(--success)']};
+  const [statusText,statusColor]=statusMap[r.status]||['Unknown','var(--text3)'];
+  const isOwner=r.owner_id===currentUser?.id, isCarrier=r.carrier_id===currentUser?.id;
+  let actionBtn='';
+  if(showAccept&&!isOwner&&r.status==='pending') actionBtn=`<button class="btn btn-primary btn-sm" onclick="openAcceptModal('${r.id}',${r.reward})">Accept — Earn ₹${r.reward}</button>`;
+  else if(isCarrier&&r.status==='accepted') actionBtn=`<button class="btn btn-success btn-sm" onclick="markPickedUp('${r.id}')">Mark Picked Up 📦</button>`;
+  else if(isOwner&&r.status==='picked_up') actionBtn=`<button class="btn btn-success btn-sm" onclick="confirmDelivery('${r.id}')">Confirm Delivery ✓</button>`;
+  else actionBtn=`<span style="font-size:12px;color:${statusColor};font-weight:600">${statusText}</span>`;
+  return `<div class="request-card">
+    <div class="request-header">
+      <div class="request-icon">📦</div>
+      <div style="flex:1"><div class="request-title">${r.platform||'Parcel'} — ${r.parcel_size||'Small'}</div><div class="request-sub">${r.pickup_location} → ${r.drop_location}${r.room_number?' · Room '+r.room_number:''}</div></div>
+      <div class="request-reward">₹${r.reward}</div>
+    </div>
+    ${r.notes?`<div style="font-size:12px;color:var(--text3);margin-bottom:8px;padding:8px;background:var(--dark4);border-radius:8px">📝 ${r.notes}</div>`:''}
+    <div class="request-footer">
+      <div class="request-user"><div class="mini-av">${(r.owner_name||'?').slice(0,2).toUpperCase()}</div>${r.owner_name||'Unknown'}</div>
+      ${actionBtn}
+    </div>
+  </div>`;
+}
+
+function openAcceptModal(requestId,reward) {
+  pendingAcceptId=requestId; pendingAcceptReward=reward;
+  document.getElementById('acceptModalAmt').textContent=reward;
+  document.getElementById('acceptModalAmtBtn').textContent=reward;
+  sb.from('parcel_requests').select('*').eq('id',requestId).single().then(({data:r})=>{
+    if(!r)return;
+    document.getElementById('acceptModalDetails').innerHTML=`<strong>${r.platform}</strong> parcel pickup<br>📍 From: ${r.pickup_location}<br>🏠 To: ${r.drop_location}${r.room_number?' · Room '+r.room_number:''}<br>📦 Size: ${r.parcel_size}<br>👤 By: ${r.owner_name||'VITian'}${r.notes?'<br>📝 '+r.notes:''}`;
+  });
+  document.getElementById('acceptModal').classList.add('open');
+}
+
+function closeAcceptModal() { document.getElementById('acceptModal').classList.remove('open'); pendingAcceptId=null; }
+
+async function doAcceptRequest() {
+  if(!pendingAcceptId||!currentProfile){showToast('⚠️','Pehle profile complete karo');closeAcceptModal();return;}
+  document.getElementById('confirmAcceptBtn').disabled=true;
+  document.getElementById('confirmAcceptBtn').textContent='Please wait...';
+  const {error}=await sb.from('parcel_requests').update({status:'accepted',carrier_id:currentUser.id,carrier_name:currentProfile.name}).eq('id',pendingAcceptId).eq('status','pending');
+  document.getElementById('confirmAcceptBtn').disabled=false;
+  document.getElementById('confirmAcceptBtn').innerHTML=`Accept — Earn ₹<span id="acceptModalAmtBtn">${pendingAcceptReward}</span>`;
+  if(error){showToast('❌','Error: '+error.message);closeAcceptModal();return;}
+  closeAcceptModal();
+  showToast('✅',`Request accept ho gayi! Parcel uthao aur ₹${pendingAcceptReward} kamao.`);
+  loadOpenRequests(); loadMyRequests();
+}
+
+async function markPickedUp(requestId) {
+  const {error}=await sb.from('parcel_requests').update({status:'picked_up'}).eq('id',requestId).eq('carrier_id',currentUser.id);
+  if(error){showToast('❌','Error');return;}
+  showToast('📦','Parcel picked up! Owner ko deliver karo.');
+  loadMyRequests(); loadOpenRequests();
+}
+
+async function confirmDelivery(requestId) {
+  const {data:req}=await sb.from('parcel_requests').select('*').eq('id',requestId).single();
+  if(!req){showToast('❌','Request nahi mila');return;}
+  await sb.from('parcel_requests').update({status:'delivered'}).eq('id',requestId);
+  if(req.carrier_id){
+    await sb.from('earnings').insert({carrier_id:req.carrier_id,request_id:requestId,request_type:'parcel',item_name:req.platform,owner_name:req.owner_name,amount:req.reward||10});
+    const {data:cp}=await sb.from('users').select('total_earnings,total_deliveries').eq('id',req.carrier_id).single();
+    await sb.from('users').update({total_earnings:(cp?.total_earnings||0)+(req.reward||10),total_deliveries:(cp?.total_deliveries||0)+1}).eq('id',req.carrier_id);
+  }
+  showToast('🎉',`Delivery confirm! Carrier ko ₹${req.reward||10} do directly.`);
+  loadDashboard();
+}
+
+async function submitParcelRequest() {
+  if(!currentUser){showToast('⚠️','Pehle login karo');return;}
+  const platform=document.getElementById('reqPlatform').value;
+  const size=document.getElementById('reqSize').value;
+  const pickup=document.getElementById('reqPickup').value;
+  const drop=document.getElementById('reqDrop').value;
+  const room=document.getElementById('reqRoom').value.trim();
+  const notes=document.getElementById('reqNotes').value.trim();
+  setBtnLoading('submitReqBtn',true);
+  const {error}=await sb.from('parcel_requests').insert({owner_id:currentUser.id,owner_name:currentProfile?.name||'VITian',platform,parcel_size:size==='10'?'Small':size==='15'?'Medium':'Large',pickup_location:pickup,drop_location:drop,room_number:room,notes,reward:parseInt(size),status:'pending'});
+  setBtnLoading('submitReqBtn',false);
+  if(error){showToast('❌','Error: '+error.message);return;}
+  showToast('🎉','Request post ho gayi! Carrier jald accept karega.');
+  document.getElementById('reqNotes').value=''; document.getElementById('reqRoom').value='';
+  switchTab('dashboard',document.querySelector('[onclick*=dashboard]')); loadDashboard();
+}
+
+async function loadEarnings() {
+  const el=document.getElementById('earningsHistory');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const {data}=await sb.from('earnings').select('*').eq('carrier_id',currentUser.id).order('created_at',{ascending:false}).limit(20);
+  if(!data||data.length===0){el.innerHTML='<div class="empty-state"><div class="empty-state-icon">💰</div><p>Abhi tak koi earning nahi.<br>Requests carry karo aur kamao!</p></div>';return;}
+  const total=data.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('earnTotal').textContent='₹'+total;
+  document.getElementById('earnDeliveries').textContent=data.length+' deliveries';
+  el.innerHTML=data.map(e=>`<div style="display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="width:36px;height:36px;border-radius:10px;background:rgba(46,204,113,0.1);display:flex;align-items:center;justify-content:center;font-size:16px">📦</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${e.item_name||'Delivery'}</div><div style="font-size:11px;color:var(--text3)">${e.owner_name||''} · ${new Date(e.created_at).toLocaleDateString('en-IN')}</div></div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--success)">+₹${e.amount}</div></div>`).join('');
+}
+
+async function loadLeaderboard() {
+  const el=document.getElementById('leaderboardList');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const {data}=await sb.from('users').select('name,hostel,total_earnings,total_deliveries,rating').order('total_earnings',{ascending:false}).limit(10);
+  if(!data||data.length===0){el.innerHTML='<div class="empty-state"><p>Abhi koi data nahi. Pehle carrier bano!</p></div>';return;}
+  const rc=['gold','silver','bronze'];
+  el.innerHTML=data.map((u,i)=>`<div class="lb-item"><div class="lb-rank ${rc[i]||''}">#${i+1}</div><div class="lb-av" style="background:rgba(255,107,43,0.15);color:var(--orange)">${u.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div><div class="lb-info"><div class="lb-name">${u.name}</div><div class="lb-meta">${u.hostel} · ${u.total_deliveries||0} deliveries · ${u.rating||5.0}★</div></div><div class="lb-earn">₹${u.total_earnings||0}</div></div>`).join('');
+}
+
+function openAuth(m){document.getElementById('authModal').classList.add('open');switchAuthTab(m);}
+function closeAuth(){
+  document.getElementById('authModal').classList.remove('open');
+  hideAuthError(); showForgotForm(false);
+}
+function switchAuthTab(m){
+  const l=m==='login';
+  document.getElementById('loginTab').classList.toggle('active',l);
+  document.getElementById('signupTab').classList.toggle('active',!l);
+  document.getElementById('loginForm').style.display=l?'block':'none';
+  document.getElementById('signupForm').style.display=l?'none':'block';
+  document.getElementById('forgotForm').style.display='none';
+  document.getElementById('authTabs').style.display='flex';
+  document.getElementById('authTitle').textContent=l?'Welcome Back':'Join ParcelPal';
+  document.getElementById('authSub').textContent=l?'Login to your account':'Free · 30 second mein start';
+  hideAuthError();
+}
+function showAuthError(msg){const e=document.getElementById('authError');e.textContent=msg;e.style.display='block';}
+function hideAuthError(){document.getElementById('authError').style.display='none';}
+function setBtnLoading(id,loading){
+  const btn=document.getElementById(id); if(!btn)return;
+  btn.disabled=loading;
+  const labels={loginBtn:'Login →',signupBtn:'Create Account →',submitReqBtn:'Post Request →',forgotBtn:'Reset Link Bhejo →'};
+  btn.textContent=loading?'Please wait...':(labels[id]||'Submit');
+}
+function updateFee(){document.getElementById('reqFeeDisplay').textContent='₹'+document.getElementById('reqSize').value;}
+function switchTab(tab,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const panel=document.getElementById('tab-'+tab); if(panel)panel.classList.add('active');
+  const t={dashboard:['Dashboard','Tera overview'],request:['Request Parcel','Parcel pickup request karo'],canteen:['Order Food','Mayuri · Underbelly · Safal Mart'],carry:['Carry & Earn','Route pe requests uthao'],track:['Track Order','Active orders dekho'],earnings:['My Earnings','Delivery income'],leaderboard:['Leaderboard','Top carriers'],profile:['My Profile','Account settings']};
+  if(t[tab]){document.getElementById('topbarTitle').textContent=t[tab][0];document.getElementById('topbarSub').textContent=t[tab][1];}
+  if(tab==='earnings')loadEarnings();
+  if(tab==='leaderboard')loadLeaderboard();
+  if(tab==='carry')loadOpenRequests();
+  if(tab==='dashboard')loadDashboard();
+}
+document.getElementById('authModal').addEventListener('click',function(e){if(e.target===this)closeAuth();});
+document.getElementById('acceptModal').addEventListener('click',function(e){if(e.target===this)closeAcceptModal();});
+let tt;
+function showToast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show'); clearTimeout(tt);
+  tt=setTimeout(()=>t.classList.remove('show'),3500);
+}
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_IN'&&session?.user&&!currentUser) await enterApp(session.user);
+});
+</script>
+</body>
+</html>
