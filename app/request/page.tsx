@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Package, UtensilsCrossed, Send } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 const HOSTELS = ['Hostel Block A','Hostel Block B','Hostel Block C','Boys Hostel','Girls Hostel','Library']
 const PICKUPS = ['Main Gate (Amazon/Flipkart)','Side Gate','Security Cabin','Safal Mart','Mayuri','Underbelly']
@@ -16,14 +17,39 @@ export default function RequestPage() {
   const [requesterName, setRequesterName] = useState('')
   const [requesterContact, setRequesterContact] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const fee = type === 'parcel' ? 10 : 15
+
+  async function handleSubmit() {
+    if (!requesterName || !requesterContact) {
+      setError('Please enter your name and contact number.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    const { error: err } = await supabase.from('delivery_requests').insert({
+      type,
+      pickup_location: type === 'parcel' ? pickup : foodFrom,
+      drop_location: drop,
+      description: type === 'food' ? foodNote : '',
+      fee,
+      requester_name: requesterName,
+      requester_contact: requesterContact,
+      note,
+      status: 'open',
+    })
+    setLoading(false)
+    if (err) { setError('Something went wrong. Please try again.'); return }
+    setSubmitted(true)
+  }
 
   if (submitted) return (
     <div className="fade-up" style={{ textAlign: 'center', padding: '80px 24px' }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 10 }}>Request Posted!</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28, lineHeight: 1.7 }}>Your request is now live. A delivery person will contact you shortly. Please keep your phone handy.</p>
-      <button onClick={() => setSubmitted(false)} style={{ background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: '13px 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+      <button onClick={() => { setSubmitted(false); setRequesterName(''); setRequesterContact(''); setNote(''); setFoodNote('') }} style={{ background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: '13px 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
         Post Another
       </button>
     </div>
@@ -104,8 +130,10 @@ export default function RequestPage() {
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>Rs.{fee}</span>
       </div>
 
-      <button onClick={() => setSubmitted(true)} style={{ width: '100%', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: 14, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <Send size={16} /> Post Request
+      {error && <div style={{ background: 'rgba(251,113,133,0.1)', border: '0.5px solid rgba(251,113,133,0.3)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#fb7185' }}>{error}</div>}
+
+      <button onClick={handleSubmit} disabled={loading} style={{ width: '100%', background: loading ? 'rgba(110,231,183,0.4)' : 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: 14, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Send size={16} /> {loading ? 'Posting...' : 'Post Request'}
       </button>
     </div>
   )
