@@ -13,14 +13,16 @@ export default function RequestPage() {
   const [foodFrom, setFoodFrom] = useState(FOOD_PLACES[0])
   const [foodNote, setFoodNote] = useState('')
   const [note, setNote] = useState('')
+  const [requesterName, setRequesterName] = useState('')
+  const [requesterContact, setRequesterContact] = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const fee = type === 'food' ? 20 : 15
+  const fee = type === 'parcel' ? 10 : 15
 
   if (submitted) return (
     <div className="fade-up" style={{ textAlign: 'center', padding: '80px 24px' }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>Done</div>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 10 }}>Request Posted!</h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28, lineHeight: 1.7 }}>Your request is now live. A fellow student will pick it up shortly.</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28, lineHeight: 1.7 }}>Your request is now live. A delivery person will contact you shortly. Please keep your phone handy.</p>
       <button onClick={() => setSubmitted(false)} style={{ background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: '13px 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
         Post Another
       </button>
@@ -33,7 +35,13 @@ export default function RequestPage() {
   return (
     <div className="fade-up" style={{ paddingTop: 28 }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 6 }}>New Request</h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 24 }}>Post a delivery - it goes live immediately</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>Post a delivery - it goes live immediately</p>
+
+      <div style={{ background: 'rgba(251,191,36,0.06)', border: '0.5px solid rgba(251,191,36,0.25)', borderRadius: 12, padding: '14px 16px', marginBottom: 22 }}>
+        <p style={{ fontSize: 12, color: '#fbbf24', lineHeight: 1.7, margin: 0 }}>
+          Payment is done directly to the delivery person in cash when they hand over your item. Do not pay anyone in advance.
+        </p>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
         {(['parcel','food'] as const).map(t => (
@@ -73,7 +81,17 @@ export default function RequestPage() {
         </select>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 16 }}>
+        <label style={labelStyle}>Your Name</label>
+        <input value={requesterName} onChange={e => setRequesterName(e.target.value)} placeholder="Full name" style={inputStyle} />
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={labelStyle}>Your Contact Number</label>
+        <input value={requesterContact} onChange={e => setRequesterContact(e.target.value)} placeholder="10-digit mobile number" type="tel" style={inputStyle} />
+      </div>
+
+      <div style={{ marginBottom: 22 }}>
         <label style={labelStyle}>Note for carrier</label>
         <input value={note} onChange={e => setNote(e.target.value)} placeholder="Any special instructions..." style={inputStyle} />
       </div>
@@ -81,24 +99,13 @@ export default function RequestPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(110,231,183,0.06)', border: '0.5px solid rgba(110,231,183,0.2)', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
         <div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Delivery fee</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Carrier earns this</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Pay cash to delivery person</div>
         </div>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>Rs.{fee}</span>
       </div>
 
-      <div style={{ background: 'rgba(251,191,36,0.06)', border: '0.5px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
-        <p style={{ fontSize: 12, color: 'rgba(251,191,36,0.8)', lineHeight: 1.6 }}>
-          Pay via UPI: parcelpal@upi - Enter UTR number below after payment.
-        </p>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>UTR / Transaction ID</label>
-        <input placeholder="Enter after UPI payment..." style={inputStyle} />
-      </div>
-
       <button onClick={() => setSubmitted(true)} style={{ width: '100%', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 12, padding: 14, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <Send size={16} /> Post Request - Pay Rs.{fee}
+        <Send size={16} /> Post Request
       </button>
     </div>
   )

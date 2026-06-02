@@ -1,13 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Home, MapPin, LayoutDashboard } from 'lucide-react'
+import { Package, Home, MapPin, LayoutDashboard, Info } from 'lucide-react'
 
 const links = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/request', label: 'Request', icon: Package },
   { href: '/live', label: 'Live', icon: MapPin },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/about', label: 'About', icon: Info },
 ]
 
 export default function Navbar() {
@@ -29,9 +30,9 @@ export default function Navbar() {
           const active = path === href
           return (
             <Link key={href} href={href} style={{ textDecoration: 'none' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 20px', borderRadius: 10, background: active ? 'rgba(110,231,183,0.1)' : 'transparent' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 10, background: active ? 'rgba(110,231,183,0.1)' : 'transparent' }}>
                 <Icon size={20} color={active ? 'var(--accent)' : 'rgba(255,255,255,0.35)'} />
-                <span style={{ fontSize: 11, fontWeight: active ? 600 : 400, color: active ? 'var(--accent)' : 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>
+                <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, color: active ? 'var(--accent)' : 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>
                   {label}
                 </span>
               </div>
