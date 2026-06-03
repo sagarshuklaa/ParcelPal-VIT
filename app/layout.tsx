@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Navbar />
-        <main className="max-w-2xl mx-auto px-4 pb-20">
+        <main style={{ maxWidth: 680, margin: '0 auto', padding: '0 16px 100px 16px' }}>
           {children}
         </main>
       </body>
